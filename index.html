@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>FPSチーム編成アプリ</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .rank-input { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 10px; 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            border-radius: 5px; 
+            background-color: #f9f9f9; 
+            position: relative; 
+        }
+        .rank-input img { 
+            width: 50px; 
+            height: 50px; 
+            object-fit: cover; 
+            margin-right: 10px; 
+            cursor: pointer; 
+            border: 2px solid transparent; 
+            border-radius: 5px; 
+        }
+        .rank-input img.selected { 
+            border-color: #007BFF; 
+        }
+        .rank-input input[type="text"], 
+        .rank-input input[type="number"] { 
+            margin-right: 10px; 
+            padding: 5px; 
+            flex: 1; 
+        }
+        .rank-input .upload-btn { 
+            padding: 5px 10px; 
+            margin-right: 10px; 
+        }
+        .rank-input .delete-btn { 
+            background-color: #dc3545; 
+            color: white; 
+            border: none; 
+            padding: 5px 10px; 
+            border-radius: 3px; 
+            cursor: pointer; 
+        }
+        .rank-input .delete-btn:hover { 
+            background-color: #c82333; 
+        }
+        #add-rank { 
+            margin-top: 10px; 
+            padding: 5px 10px; 
+        }
+        #calculate { 
+            margin-top: 20px; 
+            padding: 10px 20px; 
+        }
+        #results { 
+            margin-top: 20px; 
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            margin-top: 10px; 
+        }
+        th, td { 
+            border: 1px solid #ccc; 
+            padding: 8px; 
+            text-align: center; 
+        }
+        th { 
+            background-color: #f4f4f4; 
+        }
+        #trash-bin { 
+            width: 100px; 
+            height: 100px; 
+            border: 2px dashed #ccc; 
+            border-radius: 10px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin-top: 20px; 
+        }
+        #trash-bin.hover { 
+            background-color: #f8d7da; 
+            border-color: #f5c6cb; 
+        }
+        .draggable { 
+            cursor: move; 
+        }
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .rank-input { 
+                flex-direction: column; 
+                align-items: flex-start; 
+            }
+            .rank-input img { 
+                margin-bottom: 10px; 
+            }
+            #trash-bin { 
+                width: 80px; 
+                height: 80px; 
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>FPSチーム編成アプリ</h1>
+
+    <section id="rank-settings">
+        <h2>ランクポイントの設定</h2>
+        <div id="ranks">
+            <!-- 初期ランク入力フィールドを動的に追加 -->
+        </div>
+        <button id="add-rank">ランクを追加</button>
+    </section>
+
+    <section id="max-point-section">
+        <h2>最大チームポイントの設定</h2>
+        <input type="number" id="max-point" placeholder="例: 500" min="1">
+    </section>
+
+    <button id="calculate">計算する</button>
+
+    <section id="results">
+        <h2>結果</h2>
+        <div id="average-rank"></div>
+        <div id="combinations"></div>
+    </section>
+
+    <div id="trash-bin">
+        <img src="https://img.icons8.com/ios-filled/50/000000/trash.png" alt="ゴミ箱" width="40" height="40">
+    </div>
+
+    <!-- ランク追加用のモーダル（画像選択） -->
+    <div id="add-rank-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:5px; max-height:80%; overflow:auto;">
+            <h3>ランク画像を選択</h3>
+            <div id="image-selection" style="display: flex; flex-wrap: wrap;">
+                <!-- 画像選択オプションを動的に追加 -->
+            </div>
+            <button id="confirm-add-rank" style="margin-top:10px;">追加</button>
+            <button id="cancel-add-rank" style="margin-top:10px;">キャンセル</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
