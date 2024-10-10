@@ -75,6 +75,13 @@ document.addEventListener('DOMContentLoaded', () => {
         closeAddRankModal();
     });
 
+    // モーダル外をクリックしたときにモーダルを閉じる
+    window.addEventListener('click', (event) => {
+        if (event.target === addRankModal) {
+            closeAddRankModal();
+        }
+    });
+
     // モーダルを開く関数
     function openAddRankModal() {
         // 画像選択オプションをクリア
@@ -123,18 +130,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const combinations = generateCombinationsCPlusPlusStyle(ranks, maxPoint);
         displayCombinations(combinations, maxPoint);
+
+        // ランク設定セクションを非表示にする
+        document.getElementById('rank-settings').style.display = 'none';
     });
 
     // ランク入力フィールドを追加する関数
-    function addRankInput(initialName = "", imageName = "https://via.placeholder.com/50") {
+    function addRankInput(initialName = "", imageName = "image/placeholder.png") {
         const div = document.createElement('div');
         div.className = 'rank-input draggable';
         div.setAttribute('draggable', 'true');
 
         div.innerHTML = `
-            <img src="${imageName !== "" ? `image/${imageName}` : "https://via.placeholder.com/50"}" alt="ランク画像" class="rank-image">
+            <img src="${imageName !== "" ? `${imageName}` : "https://via.placeholder.com/50"}" alt="ランク画像" class="rank-image">
             <input type="text" class="rank-name" placeholder="ランク名" value="${initialName}">
             <input type="number" class="rank-point" placeholder="ポイント" min="1">
+            <div class="limit-section">
+                <input type="checkbox" class="limit-checkbox">
+                <input type="number" class="limit-number" placeholder="人数" min="1" disabled>
+            </div>
             <button class="delete-btn">削除</button>
         `;
         ranksDiv.appendChild(div);
@@ -142,6 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // イベントリスナーの追加
         const img = div.querySelector('.rank-image');
         const deleteBtn = div.querySelector('.delete-btn');
+        const limitCheckbox = div.querySelector('.limit-checkbox');
+        const limitNumber = div.querySelector('.limit-number');
 
         img.addEventListener('click', () => {
             // 選択状態の切り替え
@@ -160,6 +176,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // 削除ボタンの機能
         deleteBtn.addEventListener('click', () => {
             ranksDiv.removeChild(div);
+        });
+
+        // 人数制限のチェックボックスの機能
+        limitCheckbox.addEventListener('change', () => {
+            if (limitCheckbox.checked) {
+                limitNumber.disabled = false;
+            } else {
+                limitNumber.disabled = true;
+                limitNumber.value = '';
+            }
         });
 
         // ドラッグイベントの設定
@@ -200,8 +226,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const name = el.querySelector('.rank-name').value.trim();
             const point = parseInt(el.querySelector('.rank-point').value);
             const imageSrc = el.querySelector('.rank-image').src;
+            const isLimited = el.querySelector('.limit-checkbox').checked;
+            const limitNumber = parseInt(el.querySelector('.limit-number').value);
             if (name && !isNaN(point)) {
-                ranks.push({ name, point, image: imageSrc });
+                if (isLimited && (isNaN(limitNumber) || limitNumber <= 0)) {
+                    alert(`ランク "${name}" の人数制限が有効ですが、正しい人数を入力してください。`);
+                    throw new Error('Invalid limit number');
+                }
+                ranks.push({ 
+                    name, 
+                    point, 
+                    image: imageSrc, 
+                    isLimited, 
+                    limitNumber: isLimited ? limitNumber : null 
+                });
             }
         });
         return ranks;
@@ -216,6 +254,10 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let rank of ranks) {
             if (!rank.name || isNaN(rank.point) || rank.point <= 0) {
                 alert('全てのランクに有効な名前とポイントを設定してください。');
+                return false;
+            }
+            if (rank.isLimited && (isNaN(rank.limitNumber) || rank.limitNumber <= 0)) {
+                alert(`ランク "${rank.name}" の人数制限が有効ですが、正しい人数を入力してください。`);
                 return false;
             }
         }
@@ -243,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const N = ranks.length;
 
-        function backtrack(start, selected, currentSum) {
+        function backtrack(start, selected, currentSum, limits) {
             if (selected.length === 5) {
                 if (currentSum === maxPoint) {
                     cnt += 1;
@@ -256,12 +298,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
             for (let i = start; i < N; i++) {
                 const rank = ranks[i];
+                
+                // 人数制限のチェック
+                if (rank.isLimited) {
+                    if (!limits[rank.name]) {
+                        limits[rank.name] = 0;
+                    }
+                    if (limits[rank.name] >= rank.limitNumber) {
+                        continue; // 制限人数に達している場合はスキップ
+                    }
+                }
+
                 if (currentSum + rank.point > maxPoint) {
                     continue; // 合計が最大ポイントを超える場合はスキップ
                 }
+
                 selected.push(rank);
-                backtrack(i, selected, currentSum + rank.point); // 同じランクを再利用可能
+                if (rank.isLimited) {
+                    limits[rank.name]++;
+                }
+                backtrack(i, selected, currentSum + rank.point, limits);
                 selected.pop();
+                if (rank.isLimited) {
+                    limits[rank.name]--;
+                }
 
                 if (combinations.length >= MAX_COMBINATIONS) {
                     return; // 上限に達したら終了
@@ -269,9 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        backtrack(0, [], 0);
-
-        alert(`有効な組み合わせ数: ${cnt}。表示される組み合わせ数: ${combinations.length}。`);
+        backtrack(0, [], 0, {});
 
         return combinations;
     }
@@ -303,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ランクの平均ポイントを計算（maxPoint / 5）
         const averagePoint = maxPoint / 5;
-        combinationsDiv.innerHTML = `<p>表示された組み合わせ数: ${combinations.length}</p><p><strong>ランクの平均ポイント:</strong> ${averagePoint.toFixed(2)}</p>`;
+        combinationsDiv.innerHTML = `<p><strong>ランクの平均ポイント:</strong> ${averagePoint.toFixed(2)}</p><p>表示された組み合わせ数: ${combinations.length}</p>`;
         combinationsDiv.appendChild(table);
     }
 });
