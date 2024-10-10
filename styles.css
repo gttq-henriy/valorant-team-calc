@@ -62,6 +62,22 @@ h1, h2 {
 .rank-input .delete-btn:hover { 
     background-color: #c82333; 
 }
+/* 人数制限セクション */
+.rank-input .limit-section {
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+}
+.rank-input .limit-section input[type="checkbox"] {
+    margin-right: 5px;
+}
+.rank-input .limit-section input[type="number"] {
+    width: 60px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+/* ランク追加ボタン */
 #add-rank { 
     display: block;
     margin: 10px auto; 
@@ -76,6 +92,7 @@ h1, h2 {
 #add-rank:hover { 
     background-color: #218838; 
 }
+/* 計算ボタン */
 #calculate { 
     display: block;
     margin: 20px auto; 
@@ -90,9 +107,14 @@ h1, h2 {
 #calculate:hover { 
     background-color: #0069d9; 
 }
+/* 結果セクション */
 #results { 
     margin-top: 20px; 
     text-align: center;
+}
+#average-rank {
+    margin-bottom: 10px;
+    font-size: 1.2em;
 }
 table { 
     border-collapse: collapse; 
@@ -107,6 +129,7 @@ th, td {
 th { 
     background-color: #f4f4f4; 
 }
+/* ゴミ箱 */
 #trash-bin { 
     width: 100px; 
     height: 100px; 
@@ -143,6 +166,7 @@ th {
     overflow-y: auto;
     width: 80%;
     max-width: 600px;
+    box-sizing: border-box;
 }
 #image-selection {
     display: flex; 
@@ -198,5 +222,9 @@ th {
     #trash-bin { 
         width: 80px; 
         height: 80px; 
+    }
+    #add-rank-modal .modal-content {
+        width: 90%;
+        max-width: 90%;
     }
 }
