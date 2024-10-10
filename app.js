@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="number" class="rank-point" placeholder="ポイント" min="1">
             <div class="limit-section">
                 <input type="checkbox" class="limit-checkbox">
-                <input type="number" class="limit-number" placeholder="人数制限" min="1" disabled>
+                <input type="number" class="limit-number" placeholder="人数" min="1" disabled>
             </div>
             <button class="delete-btn">削除</button>
         `;
