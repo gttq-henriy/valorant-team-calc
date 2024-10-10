@@ -19,15 +19,17 @@
 
     <section id="max-point-section">
         <h2>最大チームポイントの設定</h2>
-        <input type="number" id="max-point" placeholder="例: 500" min="1">
+        <input type="number" id="max-point" placeholder="例: 44" min="1">
     </section>
 
     <button id="calculate">計算する</button>
+    <button id="modify-conditions" class="hidden">条件を変更</button> <!-- 新たに追加 -->
 
     <section id="results">
         <h2>結果</h2>
         <div id="average-rank"></div>
         <div id="combinations"></div>
+        <button class="modify-btn">条件を変更</button>
     </section>
 
     <div id="trash-bin">
