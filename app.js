@@ -1,9 +1,14 @@
 // app.js
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 初期状態で結果セクションと「条件を変更」ボタンを非表示にする
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('modify-conditions').style.display = 'none';
+
     const ranksDiv = document.getElementById('ranks');
     const addRankBtn = document.getElementById('add-rank');
     const calculateBtn = document.getElementById('calculate');
+    const modifyConditionsBtn = document.getElementById('modify-conditions');
     const averageRankDiv = document.getElementById('average-rank');
     const combinationsDiv = document.getElementById('combinations');
     const trashBin = document.getElementById('trash-bin');
@@ -11,8 +16,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageSelectionDiv = document.getElementById('image-selection');
     const confirmAddRankBtn = document.getElementById('confirm-add-rank');
     const cancelAddRankBtn = document.getElementById('cancel-add-rank');
+    const modifyBtn = document.querySelector('#results .modify-btn');
 
     const MAX_COMBINATIONS = 1000; // 表示する組み合わせの最大数
+
+    // ランクごとの画像グループ
+    const rankImageGroups = [
+        { rank: "レディアント", images: ["rediant.png"] },
+        { rank: "イモータル", images: ["imo3.png", "imo2.png", "imo1.png"] },
+        { rank: "アセンダント", images: ["ase3.png", "ase2.png", "ase1.png"] },
+        { rank: "ダイヤ", images: ["dia3.png", "dia2.png", "dia1.png"] },
+        { rank: "プラチナ", images: ["plat3.png", "plat2.png", "plat1.png"] },
+        { rank: "ゴールド", images: ["gold3.png", "gold2.png", "gold1.png"] },
+        { rank: "シルバー", images: ["silv.png"] },
+        { rank: "ブロンズ", images: ["bronz.png"] },
+        { rank: "アイアン", images: ["iron.png"] }
+    ];
 
     // 初期ランク名と対応する画像ファイル名のリスト
     const initialRanks = [
@@ -51,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     // 初期ランクを追加
-    initialRanks.forEach(rank => addRankInput(rank.name, rank.image));
+    initialRanks.forEach(rank => addRankInput(rank.name, `image/${rank.image}`));
 
     // 「ランクを追加」ボタンのクリックイベント
     addRankBtn.addEventListener('click', () => {
@@ -66,8 +85,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const imageName = selectedImage.getAttribute('data-image');
-        addRankInput('', imageName);
+        addRankInput('', `image/${imageName}`);
         closeAddRankModal();
+        saveData(); // データを保存
     });
 
     // モーダル内の「キャンセル」ボタンのクリックイベント
@@ -82,30 +102,63 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 「条件を変更」ボタン（計算ボタンの下）のクリックイベント
+    modifyConditionsBtn.addEventListener('click', () => {
+        // 結果セクションを非表示にし、ランク設定セクションを再表示
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('rank-settings').style.display = 'block';
+        modifyConditionsBtn.classList.add('hidden');
+    });
+
+    // 「条件を変更」ボタン（結果セクション内）のクリックイベント
+    modifyBtn.addEventListener('click', () => {
+        // 結果セクションを非表示にし、ランク設定セクションを再表示
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('rank-settings').style.display = 'block';
+        modifyConditionsBtn.classList.add('hidden');
+    });
+
     // モーダルを開く関数
     function openAddRankModal() {
         // 画像選択オプションをクリア
         imageSelectionDiv.innerHTML = '';
-        // 画像リストから選択可能な画像を表示
-        imageFiles.forEach(imageName => {
-            const img = document.createElement('img');
-            img.src = `image/${imageName}`;
-            img.alt = imageName;
-            img.width = 80;
-            img.height = 80;
-            img.style.margin = '5px';
-            img.style.cursor = 'pointer';
-            img.classList.add('image-option');
-            img.setAttribute('data-image', imageName);
-            img.addEventListener('click', () => {
-                document.querySelectorAll('.image-option').forEach(image => {
-                    image.classList.remove('selected');
-                    image.style.border = '2px solid transparent';
+        // ランクごとに画像をグループ化して表示
+        rankImageGroups.forEach(group => {
+            const groupDiv = document.createElement('div');
+            groupDiv.classList.add('rank-group');
+
+            const groupTitle = document.createElement('div');
+            groupTitle.classList.add('rank-group-title');
+            groupTitle.textContent = group.rank;
+            groupDiv.appendChild(groupTitle);
+
+            const imagesDiv = document.createElement('div');
+            imagesDiv.classList.add('rank-images');
+
+            group.images.forEach(imageName => {
+                const img = document.createElement('img');
+                img.src = `image/${imageName}`;
+                img.alt = imageName;
+                img.width = 80;
+                img.height = 80;
+                img.classList.add('image-option');
+                img.setAttribute('data-image', imageName);
+                img.addEventListener('click', () => {
+                    // 同じランク内の他の画像の選択を解除
+                    const siblingImages = imagesDiv.querySelectorAll('.image-option');
+                    siblingImages.forEach(image => {
+                        image.classList.remove('selected');
+                        image.style.border = '2px solid transparent';
+                    });
+                    // クリックされた画像を選択
+                    img.classList.add('selected');
+                    img.style.border = '2px solid #007BFF';
                 });
-                img.classList.add('selected');
-                img.style.border = '2px solid #007BFF';
+                imagesDiv.appendChild(img);
             });
-            imageSelectionDiv.appendChild(img);
+
+            groupDiv.appendChild(imagesDiv);
+            imageSelectionDiv.appendChild(groupDiv);
         });
         addRankModal.style.display = 'flex';
     }
@@ -122,21 +175,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!validateInput(ranks, maxPoint)) return;
 
-        // ランクをポイントの降順にソート（高ランクから低ランク）
-        ranks.sort((a, b) => b.point - a.point);
-
         const average = calculateAverage(ranks);
         averageRankDiv.innerHTML = `<strong>ランクの平均ポイント:</strong> ${average.toFixed(2)}`;
 
-        const combinations = generateCombinationsCPlusPlusStyle(ranks, maxPoint);
+        const combinations = generateCombinations(ranks, maxPoint);
         displayCombinations(combinations, maxPoint);
 
-        // ランク設定セクションを非表示にする
+        // ランク設定セクションを非表示にし、結果セクションを表示
         document.getElementById('rank-settings').style.display = 'none';
+        document.getElementById('results').style.display = 'block';
+        modifyConditionsBtn.classList.remove('hidden');
+
+        saveData(); // データを保存
     });
 
     // ランク入力フィールドを追加する関数
-    function addRankInput(initialName = "", imageName = "image/placeholder.png") {
+    function addRankInput(initialName = "", imageName = "https://via.placeholder.com/50") {
         const div = document.createElement('div');
         div.className = 'rank-input draggable';
         div.setAttribute('draggable', 'true');
@@ -171,11 +225,15 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 img.style.border = '2px solid transparent';
             }
+            saveData(); // データを保存
         });
 
         // 削除ボタンの機能
         deleteBtn.addEventListener('click', () => {
-            ranksDiv.removeChild(div);
+            if (confirm('このランクを削除しますか？')) {
+                ranksDiv.removeChild(div);
+                saveData(); // データを保存
+            }
         });
 
         // 人数制限のチェックボックスの機能
@@ -186,6 +244,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 limitNumber.disabled = true;
                 limitNumber.value = '';
             }
+            saveData(); // データを保存
+        });
+
+        // 入力フィールドの変更時にデータを保存
+        div.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', saveData);
         });
 
         // ドラッグイベントの設定
@@ -196,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         div.addEventListener('dragend', () => {
             div.classList.remove('dragging');
+            saveData(); // データを保存
         });
     }
 
@@ -215,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const draggingElement = document.querySelector('.dragging');
         if (draggingElement) {
             ranksDiv.removeChild(draggingElement);
+            saveData(); // データを保存
         }
     });
 
@@ -222,35 +288,46 @@ document.addEventListener('DOMContentLoaded', () => {
     function getRanks() {
         const rankElements = document.querySelectorAll('.rank-input');
         const ranks = [];
-        rankElements.forEach(el => {
-            const name = el.querySelector('.rank-name').value.trim();
-            const point = parseInt(el.querySelector('.rank-point').value);
-            const imageSrc = el.querySelector('.rank-image').src;
-            const isLimited = el.querySelector('.limit-checkbox').checked;
-            const limitNumber = parseInt(el.querySelector('.limit-number').value);
-            if (name && !isNaN(point)) {
-                if (isLimited && (isNaN(limitNumber) || limitNumber <= 0)) {
-                    alert(`ランク "${name}" の人数制限が有効ですが、正しい人数を入力してください。`);
-                    throw new Error('Invalid limit number');
+        try {
+            rankElements.forEach(el => {
+                const name = el.querySelector('.rank-name').value.trim();
+                const point = parseInt(el.querySelector('.rank-point').value);
+                const imageSrc = el.querySelector('.rank-image').src;
+                const isLimited = el.querySelector('.limit-checkbox').checked;
+                const limitNumber = parseInt(el.querySelector('.limit-number').value);
+                if (name && !isNaN(point)) {
+                    if (isLimited && (isNaN(limitNumber) || limitNumber <= 0)) {
+                        alert(`ランク "${name}" の人数制限が有効ですが、正しい人数を入力してください。`);
+                        throw new Error('Invalid limit number');
+                    }
+                    ranks.push({ 
+                        name, 
+                        point, 
+                        image: imageSrc, 
+                        isLimited, 
+                        limitNumber: isLimited ? limitNumber : null 
+                    });
                 }
-                ranks.push({ 
-                    name, 
-                    point, 
-                    image: imageSrc, 
-                    isLimited, 
-                    limitNumber: isLimited ? limitNumber : null 
-                });
-            }
-        });
+            });
+        } catch (error) {
+            return [];
+        }
+
+        // ランクをポイントの降順にソート（高ランクから低ランク）
+        ranks.sort((a, b) => b.point - a.point);
+
         return ranks;
     }
 
     // 入力値を検証する関数
     function validateInput(ranks, maxPoint) {
+        // 最低限のランク数の制限を解除
+        /*
         if (ranks.length < 5) {
             alert('少なくとも5つのランクを設定してください。');
             return false;
         }
+        */
         for (let rank of ranks) {
             if (!rank.name || isNaN(rank.point) || rank.point <= 0) {
                 alert('全てのランクに有効な名前とポイントを設定してください。');
@@ -275,12 +352,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * C++のネストされたループに相当する組み合わせ生成ロジック
+     * 組み合わせ生成ロジック
      * 各組み合わせのポイント合計がmaxPointに一致する5人の組み合わせを生成
-     * 最適化のため再帰的バックトラッキングを使用
+     * 人数制限を考慮
      */
-    function generateCombinationsCPlusPlusStyle(ranks, maxPoint) {
-        let cnt = 0;
+    function generateCombinations(ranks, maxPoint) {
         const combinations = [];
 
         const N = ranks.length;
@@ -288,10 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
         function backtrack(start, selected, currentSum, limits) {
             if (selected.length === 5) {
                 if (currentSum === maxPoint) {
-                    cnt += 1;
-                    if (combinations.length < MAX_COMBINATIONS) {
-                        combinations.push([...selected]);
-                    }
+                    combinations.push([...selected]);
                 }
                 return;
             }
@@ -361,7 +434,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ランクの平均ポイントを計算（maxPoint / 5）
         const averagePoint = maxPoint / 5;
-        combinationsDiv.innerHTML = `<p><strong>ランクの平均ポイント:</strong> ${averagePoint.toFixed(2)}</p><p>表示された組み合わせ数: ${combinations.length}</p>`;
+        averageRankDiv.innerHTML = `<strong>ランクの平均ポイント:</strong> ${averagePoint.toFixed(2)}`;
+        combinationsDiv.innerHTML = `<p>表示された組み合わせ数: ${combinations.length}</p>`;
         combinationsDiv.appendChild(table);
     }
+
+    // データを保存する関数
+    function saveData() {
+        const ranks = [];
+        const rankElements = document.querySelectorAll('.rank-input');
+        rankElements.forEach(el => {
+            const name = el.querySelector('.rank-name').value.trim();
+            const point = el.querySelector('.rank-point').value;
+            const imageSrc = el.querySelector('.rank-image').src;
+            const isLimited = el.querySelector('.limit-checkbox').checked;
+            const limitNumber = el.querySelector('.limit-number').value;
+            if (name && point) {
+                ranks.push({
+                    name: name,
+                    point: point,
+                    image: imageSrc,
+                    isLimited: isLimited,
+                    limitNumber: isLimited ? limitNumber : null
+                });
+            }
+        });
+
+        const maxPoint = document.getElementById('max-point').value;
+
+        const data = {
+            ranks: ranks,
+            maxPoint: maxPoint
+        };
+
+        localStorage.setItem('fpsTeamData', JSON.stringify(data));
+    }
+
+    // データをロードする関数
+    function loadData() {
+        const dataString = localStorage.getItem('fpsTeamData');
+        if (dataString) {
+            const data = JSON.parse(dataString);
+            if (data.ranks && Array.isArray(data.ranks)) {
+                ranksDiv.innerHTML = ''; // 既存のランクをクリア
+                data.ranks.forEach(rank => {
+                    addRankInput(rank.name, rank.image);
+                    const lastRank = ranksDiv.lastChild;
+                    lastRank.querySelector('.rank-point').value = rank.point;
+                    lastRank.querySelector('.limit-checkbox').checked = rank.isLimited;
+                    if (rank.isLimited) {
+                        lastRank.querySelector('.limit-number').disabled = false;
+                        lastRank.querySelector('.limit-number').value = rank.limitNumber;
+                    }
+                });
+            }
+            if (data.maxPoint) {
+                document.getElementById('max-point').value = data.maxPoint;
+            }
+        }
+    }
+
+    // ページロード時にデータをロード
+    loadData();
+
+    // ランク設定セクションを再表示した際に表示を更新
+    modifyConditionsBtn.addEventListener('click', () => {
+        modifyConditionsBtn.classList.add('hidden');
+    });
+
+    modifyBtn.addEventListener('click', () => {
+        modifyConditionsBtn.classList.add('hidden');
+    });
+
 });
