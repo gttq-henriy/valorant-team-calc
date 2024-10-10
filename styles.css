@@ -1,55 +1,87 @@
 /* styles.css */
 
+/* すべての要素に box-sizing を適用 */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 body { 
     font-family: Arial, sans-serif; 
     margin: 20px; 
     background-color: #f0f2f5;
 }
+
 h1, h2 {
     text-align: center;
 }
+
 #rank-settings {
     margin-bottom: 20px;
 }
+
 #ranks {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    max-width: 800px; /* 幅を狭める */
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* PCでは3列 */
+    gap: 15px;
+    max-width: 900px; /* 最大幅を設定 */
     margin: 0 auto; /* 中央揃え */
 }
+
 .rank-input { 
     display: flex; 
-    align-items: center; 
+    flex-direction: column; /* 縦に並べる */
+    align-items: center; /* 中央揃え */
     padding: 10px; 
     border: 1px solid #ccc; 
     border-radius: 5px; 
     background-color: #fff; 
-    width: 250px; /* 幅を調整 */
+    width: 100%; /* グリッドセルにフィット */
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+
 .rank-input img { 
     width: 50px; 
     height: 50px; 
     object-fit: cover; 
-    margin-right: 10px; 
+    margin-bottom: 10px; /* 縦方向の間隔 */
     cursor: pointer; 
     border: 2px solid transparent; 
     border-radius: 5px; 
     transition: border-color 0.3s;
 }
+
 .rank-input img.selected { 
     border-color: #007BFF; 
 }
+
 .rank-input input[type="text"], 
 .rank-input input[type="number"] { 
-    margin-right: 10px; 
+    width: 100%; /* 幅を100%に設定 */
+    margin-bottom: 10px; /* 縦方向の間隔 */
     padding: 5px; 
-    flex: 1; 
     border: 1px solid #ccc; 
     border-radius: 3px;
+    text-align: center; /* テキストを中央揃え */
 }
+
+.rank-input .limit-section {
+    display: flex;
+    align-items: center;
+    width: 100%; /* 幅を100%に設定 */
+    margin-bottom: 10px; /* 縦方向の間隔 */
+}
+
+.rank-input .limit-section input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+.rank-input .limit-section input[type="number"] {
+    width: 60px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
 .rank-input .delete-btn { 
     background-color: #dc3545; 
     color: white; 
@@ -58,25 +90,13 @@ h1, h2 {
     border-radius: 3px; 
     cursor: pointer; 
     transition: background-color 0.3s;
+    width: 100%; /* 幅を100%に設定 */
 }
+
 .rank-input .delete-btn:hover { 
     background-color: #c82333; 
 }
-/* 人数制限セクション */
-.rank-input .limit-section {
-    display: flex;
-    align-items: center;
-    margin-left: 10px;
-}
-.rank-input .limit-section input[type="checkbox"] {
-    margin-right: 5px;
-}
-.rank-input .limit-section input[type="number"] {
-    width: 60px;
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-}
+
 /* ランク追加ボタン */
 #add-rank { 
     display: block;
@@ -89,9 +109,28 @@ h1, h2 {
     cursor: pointer; 
     transition: background-color 0.3s;
 }
+
 #add-rank:hover { 
     background-color: #218838; 
 }
+
+/* 最大ポイントセクションのスタイル */
+#max-point-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 中央揃え */
+    margin-bottom: 20px;
+}
+
+#max-point-section input[type="number"] { 
+    width: 200px; /* 幅を調整 */
+    padding: 10px; 
+    border: 1px solid #ccc; 
+    border-radius: 5px;
+    text-align: center; /* テキストを中央揃え */
+    margin-top: 10px; /* タイトルと入力欄の間にスペース */
+}
+
 /* 計算ボタン */
 #calculate { 
     display: block;
@@ -104,31 +143,56 @@ h1, h2 {
     cursor: pointer; 
     transition: background-color 0.3s;
 }
+
 #calculate:hover { 
     background-color: #0069d9; 
 }
+
+/* 「条件を変更」ボタン */
+#modify-conditions {
+    display: none; /* 初期状態では非表示 */
+    margin: 10px auto;
+    padding: 10px 20px;
+    background-color: #ffc107;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#modify-conditions:hover {
+    background-color: #e0a800;
+}
+
 /* 結果セクション */
 #results { 
+    display: none; /* 初期状態では非表示 */
     margin-top: 20px; 
     text-align: center;
 }
+
 #average-rank {
     margin-bottom: 10px;
     font-size: 1.2em;
 }
+
 table { 
     border-collapse: collapse; 
     width: 100%; 
     margin-top: 10px; 
 }
+
 th, td { 
     border: 1px solid #ccc; 
     padding: 8px; 
     text-align: center; 
 }
+
 th { 
     background-color: #f4f4f4; 
 }
+
 /* ゴミ箱 */
 #trash-bin { 
     width: 100px; 
@@ -141,10 +205,12 @@ th {
     margin: 20px auto; 
     transition: background-color 0.3s, border-color 0.3s;
 }
+
 #trash-bin.hover { 
     background-color: #f8d7da; 
     border-color: #f5c6cb; 
 }
+
 /* ランク追加用のモーダル */
 #add-rank-modal { 
     display: none; 
@@ -158,22 +224,42 @@ th {
     align-items: center; 
     z-index: 1000;
 }
+
 #add-rank-modal .modal-content {
     background: white; 
     padding: 20px; 
     border-radius: 5px; 
     max-height: 80%; 
     overflow-y: auto;
-    width: 80%;
-    max-width: 600px;
-    box-sizing: border-box;
+    width: 90%;
+    max-width: 1000px; /* モーダルの幅を広げる */
 }
+
 #image-selection {
-    display: flex; 
-    flex-wrap: wrap; 
-    gap: 10px; 
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 10px;
+}
+
+.rank-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.rank-group-title {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.rank-images {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
     justify-content: center;
 }
+
 .image-option { 
     width: 80px; 
     height: 80px; 
@@ -183,9 +269,11 @@ th {
     border-radius: 5px; 
     transition: border-color 0.3s;
 }
+
 .image-option.selected { 
     border-color: #007BFF; 
 }
+
 #confirm-add-rank, #cancel-add-rank {
     margin-top: 10px;
     padding: 8px 16px;
@@ -194,37 +282,89 @@ th {
     cursor: pointer;
     transition: background-color 0.3s;
 }
+
 #confirm-add-rank {
     background-color: #28a745;
     color: white;
     margin-right: 10px;
 }
+
 #confirm-add-rank:hover {
     background-color: #218838;
 }
+
 #cancel-add-rank {
     background-color: #6c757d;
     color: white;
 }
+
 #cancel-add-rank:hover {
     background-color: #5a6268;
 }
+
+/* 「条件を変更」ボタンのスタイル */
+#results .modify-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #ffc107;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#results .modify-btn:hover {
+    background-color: #e0a800;
+}
+
 /* レスポンシブデザイン */
+@media (max-width: 900px) {
+    #ranks {
+        grid-template-columns: repeat(2, 1fr); /* タブレットでは2列 */
+    }
+}
+
 @media (max-width: 600px) {
+    #ranks {
+        grid-template-columns: 1fr; /* スマートフォンでは1列 */
+    }
+
     .rank-input { 
         flex-direction: column; 
         align-items: flex-start; 
         width: 100%;
     }
+
     .rank-input img { 
         margin-bottom: 10px; 
     }
+
     #trash-bin { 
         width: 80px; 
         height: 80px; 
     }
+
     #add-rank-modal .modal-content {
         width: 90%;
-        max-width: 90%;
+        max-width: 100%;
     }
+
+    #max-point-section input[type="number"] { 
+        width: 100%; /* スマホ画面では幅を100%に */
+    }
+}
+
+/* フォーカス時のスタイル */
+#max-point-section input[type="number"]:focus,
+.rank-input input[type="text"]:focus,
+.rank-input input[type="number"]:focus {
+    border-color: #007BFF;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* hidden クラス */
+.hidden {
+    display: none;
 }
